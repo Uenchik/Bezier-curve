@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <math.h>
 
 #include <vector>
 #include <float.h>
@@ -27,16 +26,19 @@ typedef struct {
     int b;
     int a;
 } Color;
+
 Color point_add_color = { .r = 0xff, .g = 0xff, .b = 0xff, .a = 0xff };
 Color point_held_color = { .r = 0x00, .g = 0xff, .b = 0xff, .a = 0xff };
 Color point_strip_color = { .r = 0xff, .g = 0x00, .b = 0xff, .a = 0xff };
 Color vector_color = { .r = 0xff, .g = 0x00, .b = 0x00, .a = 0xff };
+Color bezier_curve_color = { .r = 0x33, .g = 0x58, .b = 0xbb, .a = 0xff };
+
 
 typedef struct {
     float x;
     float y;
     bool is_held;
-} Point; // IT IS ACTUALLY RECT
+} Point; // NOW IT IS CIRCLE
 
 bool is_inside(Point& p, const float in_x, const float in_y) {
     return p.x-CONTROL_POINT_RADIUS <= in_x && in_x <= p.x+CONTROL_POINT_RADIUS
@@ -100,10 +102,6 @@ void draw_control_point(SDL_Renderer* r, const Point& p) { // this is centre
             }
         }
     }
-
-
-//    SDL_FRect target = {p.x, p.y, (float)CONTROL_POINT_WIDTH, (float)CONTROL_POINT_HEIGHT};
-//    SDL_RenderFillRectF(r, &target);
 }
 
 #define STRIP_STEP 5.F
@@ -116,23 +114,6 @@ void draw_control_points(SDL_Renderer* r, std::vector<Point>& points) {
     if (!points.empty()) {
         for (int i = 0; i < points.size() - 1; i++) {
             SDL_RenderDrawLineF(r, points[i].x, points[i].y, points[i+1].x, points[i+1].y);
-
-//            float x0 = points[i].x+CONTROL_POINT_WIDTH, y0 = points[i].y+CONTROL_POINT_HEIGHT/2, x = points[i+1].x+CONTROL_POINT_WIDTH/2, y = points[i+1].y+CONTROL_POINT_HEIGHT;
-//            float l = sqrtf((x-x0)*(x-x0) + (y-y0)*(y-y0));
-//            float vx = (x-x0)/l, vy = (y-y0)/l;
-//            float stepx = STRIP_STEP*vx;
-//            float stepy = STRIP_STEP*vy;
-//            float lv = sqrtf(stepx*stepx + stepy*stepy);
-//            float temp = lv;
-//            while (lv < l) {
-//                lv += temp;
-//                x0 += stepx;
-//                y0 += stepy;
-//
-//                if (!(is_inside(points[i], x0, y0) || (is_inside(points[i+1], x0, y0)))) {
-//                    SDL_RenderDrawPointF(r, x0, y0);
-//                }
-//            }
         }
     }
 }
@@ -164,13 +145,9 @@ void draw_bezier(SDL_Renderer* r, std::vector<Point>& points) {
         Point prev_p = points[0];
         bool debug = false;
         for (float t = 0.f; t <= 1.f+FLT_EPSILON; t+=T_STEP) {
-            SDL_SetRenderDrawColor(r, 0x33, 0x58, 0xbb, SDL_ALPHA_OPAQUE);
+            SDL_SetRenderDrawColor(r, bezier_curve_color.r, bezier_curve_color.g, bezier_curve_color.b, bezier_curve_color.a);
             Point next_p = compute_t_point(t, points);
-            
             SDL_RenderDrawLineF(r, prev_p.x, prev_p.y, next_p.x, next_p.y);
-
-            SDL_SetRenderDrawColor(r, 0x00, 0x00, 0xff, SDL_ALPHA_OPAQUE);
-            SDL_RenderDrawPointF(r, next_p.x, next_p.y);
             prev_p = next_p;
         }
     }
@@ -199,9 +176,6 @@ int main(int argc, char* argv[]) {
 
     std::vector<Point> points{};
 
-//    int32_t start_time = SDL_GetTicks();
-//    int32_t dt = 0;
-
     SDL_Event e;
     bool quit = false;
     while (!quit) {
@@ -225,9 +199,6 @@ int main(int argc, char* argv[]) {
             if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_RIGHT) ms.is_held = false;
             update_points(points);
         }
-
-//        int32_t current_time = SDL_GetTicks();
-//        dt = current_time - start_time;
 
         SDL_SetRenderDrawColor(render, 18, 18, 18, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(render);
