@@ -203,6 +203,7 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(render, 18, 18, 18, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(render);
 
+        // TODO: render points on curves
         draw_control_points(render, points);
         draw_bezier(render, points);
 
