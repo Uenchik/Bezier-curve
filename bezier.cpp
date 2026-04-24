@@ -10,8 +10,6 @@
 #define SCREEN_HEIGHT 600
 
 #define MAX_POINTS 10
-#define CONTROL_POINT_WIDTH 15
-#define CONTROL_POINT_HEIGHT 15
 #define CONTROL_POINT_RADIUS 10
 
 
@@ -27,7 +25,7 @@ typedef struct {
     int a;
 } Color;
 
-Color point_add_color = { .r = 0xff, .g = 0xff, .b = 0xff, .a = 0xff };
+Color point_color = { .r = 0xff, .g = 0xff, .b = 0xff, .a = 0xff };
 Color point_held_color = { .r = 0x00, .g = 0xff, .b = 0xff, .a = 0xff };
 Color point_strip_color = { .r = 0xff, .g = 0x00, .b = 0xff, .a = 0xff };
 Color vector_color = { .r = 0xff, .g = 0x00, .b = 0x00, .a = 0xff };
@@ -90,7 +88,7 @@ void update_points(std::vector<Point>& points) {
 }
 
 void draw_control_point(SDL_Renderer* r, const Point& p) { // this is centre
-    if (!p.is_held) SDL_SetRenderDrawColor(r, point_add_color.r, point_add_color.g, point_add_color.b, point_add_color.a);
+    if (!p.is_held) SDL_SetRenderDrawColor(r, point_color.r, point_color.g, point_color.b, point_color.a);
     else SDL_SetRenderDrawColor(r, point_held_color.r, point_held_color.g, point_held_color.b, point_held_color.a);
 
     for (int y = p.y - CONTROL_POINT_RADIUS; y < p.y + CONTROL_POINT_RADIUS; y++) {
@@ -106,15 +104,15 @@ void draw_control_point(SDL_Renderer* r, const Point& p) { // this is centre
 
 #define STRIP_STEP 5.F
 void draw_control_points(SDL_Renderer* r, std::vector<Point>& points) {
-    for (int i = 0; i < points.size(); i++) {
-        draw_control_point(r, points[i]);
-    }
-
     SDL_SetRenderDrawColor(r, point_strip_color.r, point_strip_color.g, point_strip_color.b, point_strip_color.a);
     if (!points.empty()) {
         for (int i = 0; i < points.size() - 1; i++) {
             SDL_RenderDrawLineF(r, points[i].x, points[i].y, points[i+1].x, points[i+1].y);
         }
+    }
+
+    for (int i = 0; i < points.size(); i++) {
+        draw_control_point(r, points[i]);
     }
 }
 
@@ -204,8 +202,8 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(render);
 
         // TODO: render points on curves soon
-        draw_control_points(render, points);
         draw_bezier(render, points);
+        draw_control_points(render, points);
 
         SDL_RenderPresent(render);
     }
